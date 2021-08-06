@@ -14,7 +14,7 @@ def point_conv2d(
     num_output_channels: int,
     kernel_size: list,
     scope_name: str,
-    stride,
+    stride: list,
     padding="SAME",
     use_xavier=True,
     stddev=1e-3,
@@ -45,6 +45,14 @@ def point_conv2d(
         kernel_h, kernel_w = kernel_size
         num_input_channels = input_data.get_shape()[-1].value
         kernel_shape = [kernel_h, kernel_w, num_input_channels, num_output_channels]
+        kernel = _variable_with_weight_decay(
+            variable_name="kernel",
+            variable_shape=kernel_shape,
+            stddev=stddev,
+            wd=weight_decay,
+            use_xavier=use_xavier,
+        )
+        stride_h, stride_w = stride
 
 
 def _variable_with_weight_decay(
