@@ -36,8 +36,8 @@ def point_conv2d(
     :param stddev:
     :param weight_decay:
     :param activation_fn:
-    :param bn:
-    :param bn_decay:
+    :param bn: 是否使用批归一化
+    :param bn_decay: 批归一化移动平均系数
     :param is_training:
     :return:
     """
@@ -53,6 +53,27 @@ def point_conv2d(
             use_xavier=use_xavier,
         )
         stride_h, stride_w = stride
+        conv_res = tf.nn.conv2d(
+            input=input_data,
+            filter=kernel,
+            strides=[1, stride_h, stride_w, 1],
+            padding=padding,
+        )
+        biases = _variable_on_cpu(
+            variable_name="biases",
+            variable_shape=[num_output_channels],
+            initializer=tf.constant_initializer(0.0),
+        )
+        outputs = tf.nn.bias_add(value=conv_res, bias=biases)
+        if bn:
+            if not bn_decay:
+                bn_decay = 0.99
+            outputs = tf.layers.batch_normalization(
+                inputs=outputs, training=is_training, momentum=bn_decay
+            )
+        if activation_fn:
+            outputs = activation_fn(outputs)
+        return outputs
 
 
 def _variable_with_weight_decay(
